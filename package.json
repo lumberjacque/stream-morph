@@ -1,0 +1,76 @@
+{
+  "name": "stream-morph",
+  "version": "0.1.0",
+  "description": "Spatial continuity for growing browser text and streaming DOM updates",
+  "license": "MIT",
+  "files": [
+    "dist/**/*.js",
+    "dist/**/*.d.ts",
+    "README.md",
+    "VIEW.md",
+    "LICENSE"
+  ],
+  "type": "module",
+  "sideEffects": false,
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./text": {
+      "types": "./dist/text.d.ts",
+      "import": "./dist/text.js"
+    },
+    "./layout": {
+      "types": "./dist/layout.d.ts",
+      "import": "./dist/layout.js"
+    },
+    "./view": {
+      "types": "./dist/view/index.d.ts",
+      "import": "./dist/view/index.js"
+    },
+    "./renderers/text": {
+      "types": "./dist/view/text.d.ts",
+      "import": "./dist/view/text.js"
+    },
+    "./renderers/code": {
+      "types": "./dist/view/code.d.ts",
+      "import": "./dist/view/code.js"
+    },
+    "./renderers/image": {
+      "types": "./dist/view/image.d.ts",
+      "import": "./dist/view/image.js"
+    }
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run",
+    "size": "node scripts/size.mjs",
+    "prepack": "node scripts/check-package.mjs",
+    "prepublishOnly": "npm run verify",
+    "verify": "npm run lint && npm run format:check && npm run typecheck && npm run test && npm run build && npm run size && npm run check:package && npm run check:install",
+    "lint": "oxlint src scripts --deny-warnings",
+    "format": "oxfmt .",
+    "format:check": "oxfmt --check .",
+    "check:package": "node scripts/check-package.mjs",
+    "check:install": "node scripts/check-install.mjs"
+  },
+  "devDependencies": {
+    "esbuild": "^0.28.2",
+    "happy-dom": "^20.14.5",
+    "oxfmt": "^0.71.0",
+    "oxlint": "^1.80.0",
+    "typescript": "^5.9.0",
+    "vitest": "^4.0.0"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
