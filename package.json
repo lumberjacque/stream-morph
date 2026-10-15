@@ -10,6 +10,7 @@
     "typescript",
     "web-animations"
   ],
+  "homepage": "https://stream-morph.vercel.app",
   "bugs": {
     "url": "https://github.com/lumberjacque/stream-morph/issues"
   },

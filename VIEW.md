@@ -34,11 +34,13 @@ in when loaded. Markdown, tool cards, charts, and custom media need a renderer
 supplied under another `kind`:
 
 ```ts
-const customRenderer = (_id: string, document: Document) => {
+import type { StreamRenderer } from "stream-morph/view";
+
+const customRenderer: StreamRenderer = (_id, document) => {
   const element = document.createElement("div");
   return {
     element,
-    update(event: { label?: unknown }) {
+    update(event) {
       element.textContent = String(event.label ?? "");
     },
   };
