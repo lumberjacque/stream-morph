@@ -21,6 +21,37 @@ afterEach(() => {
 });
 
 describe("createStreamMorph", () => {
+  it("bounds measurements on long streams and batches many chunks into one frame", () => {
+    vi.stubGlobal("matchMedia", () => ({
+      matches: false,
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+    }));
+    const element = host(),
+      initial = "word ".repeat(2000);
+    element.textContent = initial;
+    const stream = createStreamMorph(element, { maxAnimatedElements: 8, enterDuration: 0 });
+    const first = element.querySelector("[data-stream-morph-key]");
+    const read = vi.spyOn(HTMLElement.prototype, "getBoundingClientRect");
+    const schedule = vi.spyOn(window, "requestAnimationFrame").mockReturnValue(42);
+    const cancel = vi.spyOn(window, "cancelAnimationFrame").mockImplementation(() => {});
+    try {
+      for (let i = 0; i < 100; i++) stream.write("next ");
+      expect(schedule).toHaveBeenCalledTimes(1);
+      stream.flush();
+      expect(read).toHaveBeenCalledTimes(16);
+      expect(element.querySelector("[data-stream-morph-key]")).toBe(first);
+      expect(element.textContent).toBe(initial + "next ".repeat(100));
+      expect(stream.text).toBe(element.textContent);
+      expect(cancel).toHaveBeenCalledWith(42);
+    } finally {
+      stream.destroy();
+      read.mockRestore();
+      schedule.mockRestore();
+      cancel.mockRestore();
+    }
+  });
+
   it("reassembles arbitrary chunks, including a split surrogate pair", () => {
     const element = host();
     const stream = createStreamMorph(element);
@@ -81,5 +112,36 @@ describe("createStreamMorph", () => {
     const element = host();
     element.innerHTML = "<strong>Existing markup</strong>";
     expect(() => createStreamMorph(element)).toThrow("plain text only");
+  });
+
+  it("cancels a queued frame on destroy and restores text without a delayed mutation", () => {
+    const schedule = vi.spyOn(window, "requestAnimationFrame").mockReturnValue(41);
+    const cancel = vi.spyOn(window, "cancelAnimationFrame").mockImplementation(() => {});
+    const element = host();
+    const stream = createStreamMorph(element);
+    try {
+      stream.write("Not yet painted");
+      stream.write(" but never lost.");
+      expect(schedule).toHaveBeenCalledTimes(1);
+      stream.destroy();
+      stream.destroy();
+      expect(cancel).toHaveBeenCalledExactlyOnceWith(41);
+      expect(element.childNodes).toHaveLength(1);
+      expect(element.textContent).toBe("Not yet painted but never lost.");
+    } finally {
+      stream.destroy();
+      schedule.mockRestore();
+      cancel.mockRestore();
+    }
+  });
+
+  it("rejects invalid options before changing the host or scheduling work", () => {
+    const element = host();
+    element.textContent = "Existing answer";
+    expect(() => createStreamMorph(element, { duration: NaN })).toThrow(RangeError);
+    expect(() => createStreamMorph(element, { enterDuration: -1 })).toThrow(RangeError);
+    expect(() => createStreamMorph(element, { maxAnimatedElements: 1.5 })).toThrow(RangeError);
+    expect(element.childNodes).toHaveLength(1);
+    expect(element.textContent).toBe("Existing answer");
   });
 });

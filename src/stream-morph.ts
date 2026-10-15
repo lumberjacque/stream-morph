@@ -93,9 +93,10 @@ class TextStream implements StreamMorph {
   private render(animate: boolean): void {
     if (!this.queued) return;
     const next = splitStableTail(this.mutableTail + this.queued, this.segmenter);
-    const parts = [...next.stable, ...(next.tail ? [next.tail] : [])];
+    const parts = next.stable;
+    if (next.tail) parts.push(next.tail);
     const before =
-      animate && this.animator.shouldAnimate ? this.animator.snapshot(this.tokens()) : null;
+      animate && this.animator.shouldAnimate ? this.animator.snapshot(this.wordNodes) : null;
     this.animator.stop();
 
     const oldTail = this.tailNode;
@@ -123,11 +124,7 @@ class TextStream implements StreamMorph {
     this.mutableTail = next.tail?.text ?? "";
     this.tailNode = lastNode;
     this.queued = "";
-    if (before) this.animator.animate(before, this.animator.snapshot(this.tokens()));
-  }
-
-  private tokens(): Iterable<HTMLElement> {
-    return this.wordNodes.slice(-this.animator.maxAnimatedElements);
+    if (before) this.animator.animate(before, this.animator.snapshot(this.wordNodes));
   }
 
   private createNode(part: TextSegment): TokenNode {
