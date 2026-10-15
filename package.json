@@ -1,8 +1,23 @@
 {
   "name": "stream-morph",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Spatial continuity for growing browser text and streaming DOM updates",
+  "keywords": [
+    "animation",
+    "framework-agnostic",
+    "streaming",
+    "text",
+    "typescript",
+    "web-animations"
+  ],
+  "bugs": {
+    "url": "https://github.com/lumberjacque/stream-morph/issues"
+  },
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lumberjacque/stream-morph.git"
+  },
   "files": [
     "dist/**/*.js",
     "dist/**/*.d.ts",

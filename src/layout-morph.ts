@@ -30,7 +30,7 @@ class LayoutMorph implements StreamLayoutMorph {
     this.animator.destroy();
   }
 
-  private tokens(): Iterable<HTMLElement> {
+  private tokens(): NodeListOf<HTMLElement> {
     return this.root.querySelectorAll<HTMLElement>("[data-stream-morph-key]");
   }
 }

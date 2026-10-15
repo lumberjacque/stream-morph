@@ -43,21 +43,23 @@ export class MorphAnimator {
   }
 
   get shouldAnimate(): boolean {
-    return !this.destroyed && !this.media.matches;
+    return !this.destroyed && !this.media.matches && (this.duration > 0 || this.enterDuration > 0);
   }
 
   /** Read only the most recent nodes; an append normally cannot move earlier text. */
-  snapshot(elements: Iterable<HTMLElement>): Snapshot {
-    const recent = Array.isArray(elements)
-      ? elements.slice(-this.maxAnimatedElements)
-      : Array.from(elements).slice(-this.maxAnimatedElements);
+  snapshot(elements: ArrayLike<HTMLElement>): Snapshot {
     const result: Snapshot = new Map();
-    for (const element of recent) {
+    for (
+      let index = Math.max(0, elements.length - this.maxAnimatedElements);
+      index < elements.length;
+      index++
+    ) {
+      const element = elements[index]!;
       const key = element.dataset.streamMorphKey;
       if (key === undefined) throw new Error("A motion element is missing data-stream-morph-key.");
       if (result.has(key)) throw new Error(`Duplicate stream morph key: ${key}`);
-      const rect = element.getBoundingClientRect();
-      result.set(key, { element, left: rect.left, top: rect.top });
+      const rect = this.duration > 0 ? element.getBoundingClientRect() : null;
+      result.set(key, { element, left: rect?.left ?? 0, top: rect?.top ?? 0 });
     }
     return result;
   }
@@ -67,10 +69,10 @@ export class MorphAnimator {
     for (const [key, next] of after) {
       const previous = before.get(key);
       if (previous) {
+        if (this.duration === 0) continue;
         const dx = previous.left - next.left;
         const dy = previous.top - next.top;
         if (Math.abs(dx) < 0.5 && Math.abs(dy) < 0.5) continue;
-        if (this.duration === 0) continue;
         this.track(
           next.element.animate([{ translate: `${dx}px ${dy}px` }, { translate: "0px 0px" }], {
             duration: this.duration,

@@ -1,7 +1,6 @@
 # Contributing
 
-Use Node 22.12 or newer. Install dependencies with `npm ci` after the repository
-has its own committed lockfile, then run `npm run verify` before opening a pull request.
+Use Node 22.12 or newer. Install dependencies with `npm ci`, then run `npm run verify` before opening a pull request.
 Use `npm run format` for formatting and `npm run test` for focused test runs.
 
 Keep public APIs documented, browser imports free of DOM side effects, runtime

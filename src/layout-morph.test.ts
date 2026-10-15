@@ -69,4 +69,32 @@ describe("createStreamLayoutMorph", () => {
     expect(() => motion.update(async () => {})).toThrow("synchronous");
     motion.destroy();
   });
+
+  it("stops active motion on a live reduced-motion change and releases the listener", () => {
+    const media = new EventTarget();
+    Object.assign(media, { matches: false });
+    const remove = vi.spyOn(media, "removeEventListener");
+    vi.stubGlobal("matchMedia", () => media);
+    const cancel = vi.fn();
+    vi.spyOn(HTMLElement.prototype, "animate").mockReturnValue({
+      cancel,
+      addEventListener: vi.fn(),
+    } as unknown as Animation);
+    const root = document.createElement("div");
+    document.body.append(root);
+    const motion = createStreamLayoutMorph(root);
+    motion.update(() => {
+      const row = document.createElement("div");
+      row.dataset.streamMorphKey = "row";
+      root.append(row);
+    });
+    Object.assign(media, { matches: true });
+    media.dispatchEvent(new Event("change"));
+    expect(cancel).toHaveBeenCalledTimes(1);
+    motion.update(() => root.firstElementChild!.append("Still readable"));
+    expect(root.textContent).toBe("Still readable");
+    motion.destroy();
+    motion.destroy();
+    expect(remove).toHaveBeenCalledTimes(1);
+  });
 });
